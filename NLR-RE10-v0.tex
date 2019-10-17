@@ -1,0 +1,677 @@
+\documentclass[10pt, conference, compsocconf]{IEEEtran}
+\usepackage{times}
+\usepackage{microtype}
+
+\usepackage{amsmath,amssymb,amsthm,supertabular,booktabs,graphicx,rotating,semantic,subfigure,multirow,colortbl}
+\usepackage[colorlinks=true,linkcolor=black,anchorcolor=black,citecolor=black,urlcolor=black,bookmarks=false,pdfstartview=FitH]{hyperref}
+\usepackage[all]{xy}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+%=================================================
+\begin{document}
+
+\theoremstyle{plain}
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{proposition}[thm]{Proposition}
+\newtheorem{corollary}[thm]{Corollary}
+\newtheorem{lemma}[thm]{Lemma}
+\newtheorem{definition}[thm]{Definition}
+\newtheorem{convention}[thm]{Convention}
+
+\theoremstyle{remark}
+\newtheorem{remark}[thm]{Remark}
+\newtheorem{example}[thm]{Example}
+
+\newcounter{txtexamplecounter}
+\setcounter{txtexamplecounter}{0}
+
+\newenvironment{instexample}
+{\vspace{0mm}\noindent\begin{small} }
+{ \end{small}\vspace{0mm}}
+
+\newcommand{\jrefine}{\asymp\negthickspace\triangleright} %justified refinement symbol
+\newcommand{\nmdash}{\mid\negthinspace\backsim}
+\newcommand{\nlref}{\textsc{nl}-refinement}
+\newcommand{\srt}[1]{\textbf{\textit{#1}}}
+\newcommand{\rsarrow}{\rightsquigarrow}
+%\newcommand{\textexample}[3]{$\srt{{#1}}{#2}$: \textsf{{#3}}
+
+\title{Static and Dynamic Definitions of Refinement}
+\author{
+\IEEEauthorblockN{Ivan J. Jureta}
+\IEEEauthorblockA{FNRS \& Louvain School of Management\\
+University of Namur\\
+ivan.jureta@fundp.ac.be}
+\and
+\IEEEauthorblockN{St\'{e}phane Faulkner}
+\IEEEauthorblockA{Louvain School of Management\\
+University of Namur\\
+stephane.faulkner@fundp.ac.be}
+}
+
+
+%\numberofauthors{2}
+%\author{
+%\alignauthor
+%Ivan J. Jureta\\
+%       \affaddr{FNRS \& Information Management}\\
+%       \affaddr{University of Namur}\\
+%       \email{ivan.jureta@fundp.ac.be}
+%\alignauthor
+%St\'ephane Faulkner\\
+%       \affaddr{Information Management}\\
+%       \affaddr{University of Namur}\\
+%       \email{stephane.faulkner@fundp.ac.be}
+%}
+
+\maketitle
+
+\begin{abstract}
+	Stakeholders express in natural language their requirements about a system-to-be. It is a longstanding conceptual and methodological challenge to systematically increase the detail and precision of natural language requirements to the point at which their rewriting in a predicate formalism becomes relevant and formal methods applicable. This paper (i) argues that the current de facto standard refinement approach in requirements engineering (i.e., Darimont and van Lamsweerde's goal refinement \cite{Darimont+:1996:FSE}) cannot be relevantly applied to refine requirements in natural language, and (ii) proposes a new form of refinement, called nl-refinement, designed specifically for the refinement of natural language requirements. \textsc{nl}-refinement is defined and its use illustrated to increase the detail and precision of natural language requirements to the point where standard forms of refinement apply. 
+\end{abstract}
+
+\begin{IEEEkeywords}
+refinement of requirements
+
+\end{IEEEkeywords}
+
+%=================================================
+
+\section{Introduction}\label{sect:introduction}
+The research and practice of requirements engineering (\textsc{re}) clearly shows that it requires considerable skill, effort, and guidance to arrive at a point where most of the important requirements for a system-to-be are known, and only a few alternative ways of satisfying them are identified. A prominent source of difficulty is the fact that the staleholders in \textsc{re} communicate \textit{in natural language} (\textsc{nl}) their beliefs, desires, intentions, and preferences about the system-to-be. Because the specification of the system-to-be is by definition a detailed and precise artifact, and the \textsc{nl} information obtained from the stakeholders is imprecise and lacks detail, a gap stands between the two representations. Bridging this gap in a systematic, controlled, but also feasible process is a longstanding conceptual and methodological challenge. 
+
+Systematic increase in detail and precision is an old problem in computer science, and has been with \textsc{re} since the early days. The seminal works of Wirth \cite{Wirth:1971:CACM}, Dijkstra \cite{Dijkstra:1972}, and Hoare \cite{Hoare:1972:AInf} established \textit{program refinement} as a systematic method for replacing pieces of abstract programs with pieces of concrete programs. Fundamental principles of program refinement, such as proof obligations on the abstract and concrete artifacts have their analogues today in Darimont and van Lamsweerde's \textit{goal refinement} \cite{Darimont+:1996:FSE}, the current de facto standard form of refinement in \textsc{re}. It should be clear at the outset that we have nothing to contribute in this paper towards the improvement or revision of these two basic forms of refinement. What we do argue is that an additional form of refinement is needed; namely, one that is designed precisely for the refinement of \textsc{nl} descriptions of the system-to-be, and thereby applicable \textit{before} goal refinement becomes relevant, and certainly much earlier than classical program refinement is. 
+
+To understand the problem discussed in this paper, we recall the two forms of goal refinement, defined within the context of the \textsc{kaos} framework \cite{Dardenne+:1993:SCP} for \textsc{re}. We can see the \textsc{and}-goal refinement as a triple $(C, \textsc{and}, g)$, where $C$ is called a \textit{refinement set}, and is a set $C = \{ g_{1}, g_{2}, \ldots, g_{n} \}$ with $n > 2$ goals. $g$ is a goal, and \textsc{and} is the relationship indicating that $g$ is satisfied if and only if all goals in $C$ are satisfied. The members of $C$ are typically called \textit{concrete} (i.e., more precise and/or detailed) goals, in contrast to the \textit{abstract} (i.e., less precise and/or detailed) goal $g$, which they \textsc{and}-refine. An \textsc{or}-goal refinement is the triple $(C, \textsc{or}, g)$, where the relationship \textsc{or} indicates that $g$ will be satisfied if any one of the goals in $R$ is satisfied. Both the \textsc{and} and \textsc{or} relationships obey specific conditions, which play the same role as proof obligations in program refinement. The interest in goal refinement stems from precise proof obligations. For \textsc{and}-goal refinement, these are: (C1) that the satisfaction of the abstract goal is provable from the satisfaction of the concrete goals (i.e., $g_{1} \wedge g_{2} \wedge \ldots \wedge g_{n} \vdash g$), (C2) that the set of concrete goals contains only the absolutely necessary concrete goals (i.e., $\forall i \in \{1, \ldots, n\}$, $\bigwedge_{j \neq i} g_{j} \not\vdash g$), (C3) that the concrete goals are not inconsistent (i.e., $g_{1} \wedge g_{2} \wedge \ldots \wedge g_{n} \not\vdash \bot$), and (C4) that the concrete goals are not a trivial rewriting of the abstract goal (i.e., $n > 1$). By definition \cite{Darimont+:1996:FSE}, it is only if all of these conditions (C1)--(C4) hold that it can be said that $g_{1}, \ldots, g_{n}$ \textsc{and}-refine $g$. We will recall proof obligations for \textsc{or}-goal refinement further down.
+
+A convenient way to represent goal refinements is via directed acyclic graphs, where \textsc{and}- and \textsc{or}-labeled links relate nodes that capture concrete and abstract goals. It is common to see these graphs being drawn ``informally'', that is, without checking the relevant proof obligations. This typically happens very early on in \textsc{re}, when requirements expressed in \textsc{nl} are being manipulated. Doing so subsumes the assumption that Darimont and van Lamsweerde's goal refinement applies not only to those requirements, which are precise and detailed enough to be specified in a linear temporal Boolean first-order logic (as in \textsc{kaos}) and to which formal refinement patterns apply \cite{Darimont+:1996:FSE}, but also to the early requirements expressed in \textsc{nl}. While goal refinement certainly \textit{can} be applied in such a simplistic way to the early requirements expressed in \textsc{nl}, the important question is whether it is relevant to do so.
+
+This paper argues that \textit{goal refinement cannot be relevantly applied to the early requirements expressed in} \textsc{nl}. It cannot be \textit{relevantly} applied, because doing so admits two paradoxes, called \textit{the soundness paradox} and \textit{the maturity paradox}. Roughly speaking, the former says that the form of reasoning that can be applied when refining, namely ampliative inference, violates the soudness property, all the while the proof obligations that must be obeyed when refining are defined in a sound formalism. The second says that if proof obligations do verify for a given $(C, \textsc{and}, g)$ (or $(C, \textsc{or}, g)$), then this refinement is certain and indubitable, which contradicts the fact that the early requirements in \textsc{nl} are subject to vagueness and ambiguity, among others, which makes the refinement carrying this information necessarily only tentative, preliminary, and open to revision, and hence \textit{neither} certain \textit{nor} indubitable. We consequently propose a new form of refinement, called \nlref, short of \textit{natural language refinement}, designed specifically for the refinement of requirements elicited early on in \textsc{re} and expressed in \textsc{nl}. \nlref\ suffers neither from the soundness paradox nor from the maturity paradox. 
+
+The rest of the paper is organized as follows. In discussing related work, we briefly recall classical program refinement and Banach's retrenchment, then outline the salient features (not mentioned above) of goal refinement (\S\ref{sect:relatedwork}). The soundness and maturity paradoxes are then presented (\S\ref{sect:paradoxes}), and \nlref\ is defined and illustrated (\S\ref{sect:nlref}). We close with a summary of conclusions and directions for future work (\S\ref{sect:conclusions}). 
+
+
+\section{Related Work}\label{sect:relatedwork}
+Program refinement consists of replacing a piece of abstract program with a piece of more concrete program \cite{Wirth:1971:CACM,Dijkstra:1972,Hoare:1972:AInf}. Detail can thereby be added incrementally, with the benefit of delaying lower level detail to later steps of system development. The various kinds of refinement (for an overview, cf., e.g., \cite{deRoever+:1998}) share the common strategy for establishing the correctness of an implementation. Namely, for every run of the concrete system, there must be a run of the abstract system, which maintains the correct correspondence between these runs. The idea is that there is a correct correspondence between concrete and abstract models of the systems in question, which leads to proof obligations. For illustration, we borrow from Banach and colleagues \cite{Banach+:2007:FI} the following formulation of the proof obligation for generalized forward refinement correctness: 
+
+%\vspace{-6mm}
+\begin{small}
+\begin{multline*}
+R(u, v) \wedge RIn_{Op}(i,j) \wedge pre(Op_{a})(u,i) \wedge Op_{b}(v,j,v^{\prime},p) \Rightarrow \\
+(\exists u^{\prime}, o \bullet Op_{a}(u,i,u^{\prime},o) \wedge R(u^{\prime}, v^{\prime}) \wedge ROut_{Op}(o,p))
+\end{multline*}
+\end{small}
+%\vspace{-6mm}
+
+\noindent Above, $u, v$ are abstract/concrete states that are primed for after-states; $i, j$ are abstract/concrete inputs; $o, p$ are abstract/concrete outputs; $Op_{a}$ and $Op_{b}$ are abstract/concrete versions of the operation $Op$. $R$ is the retrieve relation, whereas $RIn_{Op}, ROut_{Op}$ are input/output relations respectively. With generalized forward refinement, one relates a sequence of (at least one) steps of an abstract model of a system \textit{en bloc}, to a sequence of steps of a concrete model \textit{en bloc}. The aim is to show that the retrieve relation is preserved on the states between the ends of the two sequences, although it need not necessarily be preserved at points internal to the two sequences. 
+
+Proof obligations make refinement a powerful tool for progressing from abstract to concrete models of a system-to-be. However, as Banach and colleagues observe (\cite{Banach+:2007:FI}: p.102), ``[s]ince the human notion of abstraction is inevitably imprecise, and the mathematical notion of abstraction pertaining to any specific refinement formalism is de facto extremely precise, some dislocation between the two is bound to occur sometimes.'' In order to accommodate these ``dislocations'', that is, cases when refinement proves too restrictive, Banach and colleagues introduced \cite{Banach+:1998:B} \textit{retrenchment}. Retrenchment manipulates proof obligations; e.g., the retrenchment reformulation of the proof obligation for generalized forward refinement correctness is:
+
+%\vspace{-6mm}
+\begin{small}
+\begin{multline*}
+R(u,v) \wedge W_{Op}(i,j,u,v) \wedge Op_{b}(v,j,v^{\prime},p) \Rightarrow \\
+(\exists u^{\prime},o \bullet Op_{a}(u,i,u^{\prime},o) \wedge R(u^{\prime},v^{\prime}) \wedge O_{Op}(o, p, u^{\prime}, v^{\prime}, i, j, u, v) \\
+\vee C_{Op}(u^{\prime}, v^{\prime}, o, p, i, j, u, v))
+\end{multline*}
+\end{small}
+%\vspace{-6mm}
+
+\noindent Above, $RIn_{Op} \wedge pre(Op_{a})$ has been generalized to the relation $W_{Op}(i,j,u,v)$, which is an arbitrary relation in the before-values. $ROut_{Op}$ has been generalized to the retrenchment output relation $O_{Op}(o, p, u^{\prime}, v^{\prime}, i, j, u, v)$, which allows all the variables to occur. The concedes relation $C_{Op}(u^{\prime}, v^{\prime}, o, p, i, j, u, v)$ describes what happens if the retrieve relation cannot be reestablished by a given pair of abstract/concrete steps. Retrenchment can be used to handle cases when refinement proves too restrictive, but also to capture general evolutions of system definitions (e.g., \cite{Banach+:1998:B,Banach+:2007:FI}).
+
+In parallel with the development of retrenchment, \textsc{re} has seen the introduction and widespread use of \textsc{and}-goal refinement and \textsc{or}-goal refinement. The same benefits are pursued as for refinement and retrenchment, which is to delay details until later. \textsc{and}- and \textsc{or}-goal refinement apply to instances of the \textit{goal} concept in \textsc{re}. Goals describe environment conditions, whereby participants in \textsc{re} desire that these conditions become true by the use of the system-to-be. Darimont and van Lamsweerde's \cite{Darimont+:1996:FSE} definition of a complete \textsc{and}-refinement of a goal remains a standard one in \textsc{re}. We recalled its definition earlier (cf., conditions (C1)--(C4) in \S\ref{sect:introduction}). Darimont and van Lamsweerde provide formal patterns for the \textsc{and}-refinement of goals expressed in a first-order linear temporal Boolean logic, thereby facilitating the refinement process. This also keeps the \textsc{and}-goal refinement relationship in line with the ideas of program refinement. To do goal refinement justice, we should mention first that the goal refinement we recalled above (\S\ref{sect:introduction}) is what is usually called \textsc{and}-goal refinement, and is available alongside \textsc{or}-goal refinement: $g_{1}, \ldots, g_{n}$ \textsc{or}-refine $g$ if and only if: $\forall i \in \{1, \ldots, n\}$, (i) $g_{i} \vdash g$, and (ii) $g_{i} \not\vdash \bot$. Second, we should mention that Letier \cite{Letier:2001:PHD} adds a domain theory, denoted \textit{Dom}, and replaces $\vdash$ with the semantic entailment relation $\models$. Letier's \textsc{and}-goal refinement indicates that $g_{1}, g_{2}, \ldots, g_{n}$ \textsc{and}-refine $g$ iff: (i) $g_{1} \wedge g_{2} \wedge \ldots \wedge g_{n}, \textit{Dom} \models g$, (ii) $\forall i \in \{1, \ldots, n\}$, $\bigwedge_{j \neq i} g_{j}, \textit{Dom} \not\models g$, (iii) $g_{1} \wedge g_{2} \wedge \ldots \wedge g_{n}, \textit{Dom} \not\models \bot$, and (iv) $n > 1$; $g_{1}, g_{2}, \ldots, g_{n}$ \textsc{or-refine} $g$ iff $\forall i \in \{1, \ldots, n\}$, (i) $g_{i}, \textit{Dom} \models g$, and (ii) $g_{i}, \textit{Dom} \not\models \bot$. Letier does not clarify if $\models$ is standard or not; we assume by default that it is standard semantic entailment. As McCarthy \cite{McCarthy:1980:AIJ} observes, standard semantic entailment $\models$ is monotonic. Recall that the monotonicity property tells us that if a sentence $p$ follows from the collection of sentences $X$ and $X \subset X^{\prime}$, then $p$ follows from $X^{\prime}$. In the notation of proof theory: if $X \vdash p$ and $X \subset X^{\prime}$, then $X^{\prime} \vdash p$. We say that $X$ entails $p$, and write $X \models p$ iff $p$ is true in all models of $X$. But if $X \models p$ and $X \subset X^{\prime}$, then every model of $X^{\prime}$ is also a model of $X$, which shows that $X^{\prime} \models p$. It follows that the discussions in this paper remain equally relevant regardless of the choice of Darimont and van Lamsweerde's goal refinement defined via proof theory, or Letier's goal refinement defined via semantic entailment.
+
+
+\section{Two Paradoxes}\label{sect:paradoxes}
+This section presents the soundness paradox (\S\ref{sect:paradoxes:soundness}) and the maturity paradox (\S\ref{sect:paradoxes:maturity}), which arise when \textit{goal refinement is used to refine early requirements, expressed in} \textsc{nl}. These paradoxes do \textit{not} offer a critique of goal refinement \textit{per se}; instead, they highlight that to use goal refinement when refining early requirements expressed in \textsc{nl} is in fact to \textit{misuse} goal refinement. Avoiding the two paradoxes are the two critical desiderata for \nlref.
+
+%To understand the problem that this paper addresses, we recall the standard form of refinement in \textsc{re}, which we take to be Darimont and van Lamsweerde's \cite{Darimont+:1996:FSE} \textsc{and}- and \textsc{or}-\textit{goal refinement}. The reason for its relevance is found in \textit{the proof obligations it places on the refinement relationship between the abstract goal $g$ and concrete goals $g_{1}, g_{2}, \ldots, g_{n}$}. For \textsc{and}-goal refinement, these are: (C1) that the satisfaction of the abstract goal is provable from the satisfaction of the concrete goals (i.e., $g_{1} \wedge g_{2} \wedge \ldots \wedge g_{n} \vdash g$), (C2) that the set of concrete goals contains only the absolutely necessary concrete goals (i.e., $\forall i \in \{1, \ldots, n\}$, $\bigwedge_{j \neq i} g_{j} \not\vdash g$), (C3) that the concrete goals are not inconsistent (i.e., $g_{1} \wedge g_{2} \wedge \ldots \wedge g_{n} \not\vdash \bot$), and (C4) that the concrete goals are not a trivial rewriting of the abstract goal (i.e., $n > 1$). By definition \cite{Darimont+:1996:FSE}, it is only if all of these conditions (C1)--(C4) hold that it can be said that $g_{1}, \ldots, g_{n}$ refine $g$. 
+%
+%It has been repeatedly argued that goal refinement can be used not only on goals written in a mathematical logic (usually a linear temporal first-order logic) at some advanced step of \textsc{re}, but also on those expressed in natural language (\textsc{nl}) at the very first steps of \textsc{re}. While it certainly \textit{can} be used in this way, the important question is whether it is relevant to do so. Two paradoxes, termed \textit{the soundness paradox} and \textit{the maturity paradox}, lead us to conclude that it is \textit{not} relevant to apply goal refinement to requirements elicited early on in \textsc{re}.
+
+\subsection{Soundness Paradox}\label{sect:paradoxes:soundness}
+The soundness paradox is rooted in the distinction between deductive and ampliative inference. Inference is ampliative when the inferred conclusion contains information absent from the premises (or data, or reasons) from which it was inferred; some examples of such reasoning are induction by enumeration, reasoning with analogies, and causal reasoning \cite{Swoyer:2008}. Recall that the benefit of goal refinement is to delay details to later steps of \textsc{re}, then consider the following example, borrowed as-is from Darimont and van Lamsweerde \cite{Darimont+:1996:FSE}. Say that we have the following goal, which specifies a point-to-point communication between two agents (the operators $\diamond$ and $\Box$ read, respectively ``eventually'' and ``always in the future'', and have the semantics that they usually obtain in a linear temporal Boolean first-order logic): 
+
+%\vspace{-6mm}
+\begin{small}
+\begin{multline*}
+\forall p_{1}, p_{2}: \textit{Point},\ m:\textit{Message}, \\
+\textit{CallRequest}(p_{1}, p_{2}) \wedge (p_{1}.\textit{msgOut} = m) \Rightarrow \diamond(p_{2}.\textit{msgIn} = m)
+\end{multline*}
+\end{small}
+%\vspace{-6mm}
+
+This goal can be satisfied by requiring that both (i) a channel be allocated for the communication, and (ii) the communication uses the allocated channel. The conjunction of these two goals is an \textsc{and}-goal refinement of the above goal. The first (i) of the two can be written as follows:
+
+%\vspace{-6mm}
+\begin{small}
+\begin{multline*}
+\forall p_{1}, p_{2}: \textit{Point},\ \textit{Connection}(p_{1}, p_{2}) \\
+\Rightarrow \Box(\exists c:\textit{Channel})(\textit{Allocation}(p_{1}, p_{2}, c))
+\end{multline*}
+\end{small}
+%\vspace{-6mm}
+
+Above, the notion of a channel is absent from the abstract (former) goal, but present in the less abstract (latter) goal. The question then is if this additional information was available in our ``background'' knowledge, and we simply chose not to make it explicit in the abstract goal (but did make it explicit in the less abstract goal), or is this additional information new -- that is, we \textit{added} it to our background knowledge when we were seeking less abstract goals for the refinement. In the former case, we reason by deduction when refining; the latter is instead a case of ampliative inference. Now, if refining a goal did in fact require deductive inference only, this would subsume some heroical assumptions, including (i) that we have all the necessary background knowledge when refining, and (ii) that it is feasible to make explicit all that background knowledge. Such assumptions conflict with the reality of \textsc{re}, where:
+
+%\vspace{-3mm}
+\begin{quote}
+``clients may change their minds once they see the possibilities more clearly, and discoveries made during later phases may also force retrofitting requirements. The requirements of real systems are rarely static. There are very good reasons why clients often do not, or cannot, know exactly what they need; they may want to see models, explore alternatives, and envision new possibilities.'' \cite{Goguen+:1993:RE}
+\end{quote}
+%\vspace{-3mm}
+
+It is then very often the case that inference applied during the early steps of \textsc{re}, when requirements are expressed in \textsc{nl}, \textit{is ampliative}. With this in mind, observe that the proof obligations (C1)--(C4) are defined in a \textit{sound} logic, and we know that \textit{if a logic is sound, it cannot lead by valid inference to conclusions that go beyond the contents of our background knowledge} \cite{Kyburg:2001:MM}. In contrast, ampliative inference violates soundness, for it involves going beyond available knowledge in a deductive way. Hence the soundness paradox: \textit{on one hand, when we perform ampliative inference to refine an abstract requirement, we violate soudness; on the other hand, the proof obligations we need to obey when we are refining are defined in a sound formalism}. This begs the question of why the constraints on the refinement relationship are not defined in a formalism that fits the fact that ampliative inference can be, and often quite obviously is applied when refining requirements in \textsc{nl}. 
+
+One could attempt to undermine the discussion above by saying that proof obligations are ideal rather than actual constraints that need to be satisfied, especially when requirements are early and expressed in \textsc{nl}. In such a perspective, proof obligations say what we aim for, not what we can/must achieve; they end up being not obligations, but a set of guidelines. It follows that we will not ask that proof obligations be satisfied, but some less demanding proxies of these constraints. This perspective does not alleviate the soundness paradox; it merely says that we can live with it; moreover, it suffers from two problems. The first is that goal refinement does not tell us how to check the less demanding proxies of the ideal constraints; in fact, it does not say what these proxies are in the first place! The second problem is that, while we can live with the soundness paradox, it is also true that rigor commands that this position becomes acceptable only after no solution that avoids the soundness paradox is found. This paper offers one such solution, thereby making the said position untenable. Another position can be to ignore the existence of the soundness paradox --- to do so, one could introduce the following methodological twist: after the concrete requirements are found, consider first the concrete and abstract requirements, then check the proof obligations, and finally, modify any one or more of the concrete and/or abstract requirements to make sure that the proof obligations are not violated. The twist simply turns a blind eye to the violation of soundness when the concrete requirements are sought, but neither resolves, nor falsifies the soundness paradox.
+
+
+\subsection{Maturity Paradox}\label{sect:paradoxes:maturity}
+The maturity paradox stems from the opposition between the certain and indubitable character that a refinement obtains as soon as the proof obligations hold, and the tentative, preliminary, debatable character that a refinement is usually observed to actually have. The conclusion to draw from the maturity paradox is that we cannot reasonably follow proof obligations defined in a monotonic formalism when refining early requirements expressed in \textsc{nl}. Instead, we need obligations defined in a non-monotonic formalism. 
+
+Proof obligations (C1)--(C4) are defined in a formalism that enjoys the property of monotonicity. As noted above (cf., \S\ref{sect:relatedwork}), this is the case in their definition via the notation of proof theory (as in \cite{Darimont+:1996:FSE}) and their definition via semantic entailment (as in \cite{Letier:2001:PHD}). By the definition of \textsc{and}-goal refinement, the claim ``\textit{goals $g_{1}, \ldots, g_{n}$} \textsc{and}\textit{-refine the goal $g$}'' can be given if and only if all four proof obligations (C1)--(C4) verify. If (C1)--(C4) do verify, then the \textsc{and}-refinement relationship in the tuple $(\{ g_{1}, \ldots, g_{n} \}, \textsc{and}, g)$ enjoys the property of monotonicity. This is because the proof obligations (C1)--(C3) require proofs, whereby the proofs are defined in a monotonic formalism. As Antonelli observes \cite{Antonelli:2008:SEP}, proofs (as those in proof obligations) involve a kind of mathematical reasoning, which:
+
+%\vspace{-3mm}
+\begin{quote}
+ ``is characterized by a particular type of cogency: the conclusions are not merely probable or plausible on the basis of whatever evidential support the basic principles might provide, but certain and indubitable. In particular, mathematical reasoning enjoys a property referred to as monotonicity by modern logicians: if a conclusion follows from given premises A, B, C,... then it also follows from any larger set of premises, as long as the original premises A, B, C,... are included.''
+\end{quote}
+%\vspace{-3mm}
+
+If the monotonic proof obligations hold, then the refinement relationship is \textit{certain} and \textit{indubitable}. By the virtue of being proved, and thereby certain and indubitable, the refinement relationship is \textit{not} tentative, \textit{not} based on partial, imprecise, ambiguous, or vague premises, and \textit{cannot} be retracted when new facts are learned. This may well be true when we have goals expressed in a mathematical logic, because we tend to formalize at later steps of \textsc{re}, when the purpose of the system-to-be is clear(er), (more) precise, and detailed (enough) to warrant the resources that formal methods require. But can this be true for early requirements expressed in \textsc{nl}? Strong arguments favor the negative answer: (i) it is clear that \textsc{nl} is notoriously prone to ambiguity, vagueness, and imprecision, among others (cf., e.g., \cite{Sorensen:2008}); (ii) at the outset of \textsc{re}, the purpose of the system-to-be tends to be ill-defined and unclear (this is one of very basic reasons for doing \textsc{re} in the first place); and (iii) requirements tend to change as participants in \textsc{re} familiarize themselves with the problem at hand, and its potential solutions (cf., e.g., \cite{Goguen+:1993:RE}). Requirements expressed in \textsc{nl} are \textit{tentative}, \textit{preliminary}, and \textit{may be subject to revision}, and this by the very fact of being expressed in \textsc{nl} and early on in \textsc{re}. They are \textit{neither} certain, \textit{nor} indubitable. 
+
+Consider an example. Suppose that the engineer needs to satisfy the goal ``$g$: inform customers of price changes'' for an e-commerce system. She can reason as follows:
+
+%\vspace{-3mm}
+\begin{quote}
+	Usually, e-commerce systems inform a customer of price changes when the customer logs on to their profile, and sometimes by email. 
+\end{quote}
+%\vspace{-3mm}
+
+This will lead the engineer to define two goals, ``$g_{1}$: Show price changes in the user's profile'' and ``$g_{2}$: Send price changes to the user's email address''. Since it is likely that she will deem reasonable enough to say that satisfying $g_{1}$ and $g_{2}$ satisfies $g$, she will define an \textsc{and}-goal refinement $(\{ g_{1}, g_{2} \}, \textsc{and}, g)$. For this to be a goal refinement, proof obligations must verify. Hence, by claiming that it is a goal refinement, she subsumes that the proof obligations do verify. The next day, a stakeholder says that it is convenient to be informed of price changes via the mobile phone. This makes inadequate the refinement defined on the previous day. In response, the engineer will go back to the refinement defined before, and add a third goal, say ``$g_{3}$: Send price changes via the short message service to the user's mobile phone, if the user chooses to receive price updates in this way''. Just as she did on the previous day, she will assume that this is in fact a goal refinement. This pattern of doing refinement in \textsc{re} is familiar and hardly to blame, for it matches commonsense reasoning, in which adding new information can lead to the change in prior conclusions.
+
+Does the reasoning illustrated above fit the definition of goal refinement via proof obligations? It does not, because of the following contradiction. Because of monotonicity, any information that is added does not invalidate established proof. Above, observe that we initially have $g_{1} \wedge g_{2} \vdash g$; once we know $g_{3}$, we conclude that $g_{1} \wedge g_{2} \not\vdash g$, but that $g_{1} \wedge g_{2} \wedge g_{3} \vdash g$. This highlights a contradiction with regards to the second proof obligation (C2). The second proof obligation (cf., \S\ref{sect:introduction}) indicates that the set of concrete goals contains only goals that are absolutely necessary: i.e., the refinement set is minimal. If we said that $g_{1}$ and $g_{2}$ \textsc{and}-refine $g$, then the refinement set $\{ g_{1}, g_{2} \}$ is minimal by definition of refinement. When we add $g_{3}$, we cannot conclude without abstracting from monotonicity that it is instead $g_{1}$, $g_{2}$, and $g_{3}$ that are the minimal \textsc{and}-goal refinement of $g$.
+
+It is apparent at this point that asking for monotonic proof obligations when refining early requirements expressed in \textsc{nl} negates what seems quite obvious: namely, that because requirements in \textsc{nl} are not certain and indubitable, the refinement of such requirements is at best tentative, preliminary, and open to revision. The obligations that the refinement of such requirements should instead obey must enjoy the property of non-monotonicity. Hence the maturity paradox: \textit{on the one hand, we are asked to ensure that monotonic proof obligations hold; on the other hand, we know that the refinement relationship between early requirements expressed in \textsc{nl} is at best preliminary, tentative, and open to revision}. 
+
+Observe that, ultimately, the cause of the problem here is the maturity of the requirements, and the inherent characteristics (e.g., vagueness and ambiguity, among others) of the medium in which the requirements are expressed. It is clear that the potential for ambiguity, vagueness, and imprecision of early requirements in \textsc{nl} is strong, so that, when refining, we can at best ``arrive to conclusions only tentatively, based on partial or incomplete information, reserving the right to retract those conclusions should they learn new facts'' \cite{Antonelli:2008:SEP}. Refinement of early requirements is thus a case of reasoning, which produces conclusions that enjoy the property of nonmonotonicity. 
+
+
+%so that refinement of such requirements itself is non-monotonic. ``[I]n many instances of ordinary or everyday reasoning, people arrive to conclusions only tentatively, based on partial or incomplete information, reserving the right to retract those conclusions should they learn new facts.'' \cite{Antonelli:2008:SEP} Such reasoning is called non-monotonic. It finds its sources in the work of McCarthy \cite{McCarthy:1977:IJCAI}, McDermott and Doyle \cite{McDermott+:1980:AIJ}, and Reiter \cite{Reiter:1980:AIJ}.
+
+
+%The central question of this paper then is \textit{what obligations we can define and check in order to claim that $g_{1}, \ldots, g_{n}$ refine $g$, when both $g_{1}, \ldots, g_{n}$ and $g$ are expressed in \textsc{nl}?} The answer to this question leads us to put forward a new kind of refinement, called \textsc{nm}-\textit{refinement}, short of non-monotonic refinement. 
+%
+%Nm-refinement has four key characteristics. (1) Proof obligations are replaced by \textit{justification obligations}, which obtain a precise meaning in, and are checked via a non-monotonic logic introduced below. (2) Nm-refinement is not specific to conjunction and/or (exclusive) disjunction of concrete goals. Instead, the library of relationships is defined at the level of a project, and such libraries are reusable. (3) An abstract instance of a concept (e.g., an abstract goal) can be j-refined by concrete instances of various concepts (e.g., concrete quality constraints, plans, and so on), whereby it is the \textsc{re} ontology used by the software engineer that restricts the set of available concepts. (4) Nm-refinement does not overlap with established forms of refinement, but \textit{precedes} them in time when \textsc{re} is performed: namely, the output of j-refinement can be used as the input to goal refinement. 
+
+%The rest of the paper starts with the discussion of related work, namely program refinement, Banach's retrenchment, and Darimont and van Lamsweerde's goal refinement (\S\ref{sect:relatedwork}). Nm-refinement is then defined and illustrated (\S\ref{sect:nl-refinement}) and the combinations of j-refinements is outlined (\S\ref{sect:concretize}). We subsequently contrast nl-refinement to the mentioned standard kinds of refinement (\S\ref{sect:discussion}). We finally summarize conclusions and point to directions for future work (\S\ref{sect:conclusions}).
+
+
+\section{NL-Refinement}\label{sect:nlref}
+The soundness and maturity paradoxes (cf., \S\ref{sect:paradoxes}) illustrate that the degree of rigor asked by proof obligations cannot be achieved when refining early requirements expressed in \textsc{nl}. Requirements engineers can presumably still be helpful and remain rigorous without pretending to a degree of stability, detail, precision, and completeness, which they apparently cannot deliver. 
+
+While it will be clear from the details below that \nlref\ does avoid the two paradoxes, it is relevant to briefly mention here how it does so. We define \nlref\ within a nonmonotonic formalism for the refinement of early requirements expressed in \textsc{nl}, in which there is no provability relation (i.e., logical consequence) $\vdash$, but instead a nonmonotonic consequence relation $\nmdash$ (sometimes called nonmonotonic derivation, or simply derivation). Obligations on the refinement relationship are consequently defined via via nonmonotonic consequence, which makes refinement tentative, preliminary, and open to subsequent revision. This is closely related to allowing defaults in the formalism, which ensures that we avoid the soundness paradox. A default is an inference rule that relates prima facie reasons to their defeasible conclusion. Note the distinction between conclusive reasons and prima facie reasons: a set of sentences $X$ are \textit{conclusive reasons} for a sentence $p$ only if we can deductively conclude $p$ from $X$; members of $X$ are \textit{prima facie reasons} for $p$ if we cannot deductively conclude $p$ from $X$ -- instead, ``prima facie reasons create a presumption in favor of their conclusion, but it is defeasible'' \cite{Pollock:1994:AIJ}. Our formalism can thereby capture the application of ampliative inference by relating prima facie reasons to the conclusion defeasibly drawn from these reasons. Nonomonotonic derivation uses defaults to provide us with the implicit but tentative conclusions from a collection of sentences. 
+
+To define \nlref, we propose a formalism that will capture the early requirements expressed in \textsc{nl}, between which we are to determine refinement relationships. The formalism acts as a knowledge representation framework, in which a language is given to capture the information of interest, and reasoning procedures serve to verify obligations of \nlref. Inspiration came from what Dung \cite{Dung:1995:AIJ} calls argument-based nonmonotonic reasoning in artificial intelligence, which originates in Pollock's contributions (cf., \cite{Pollock+:1987:CogSci} and later). Simari and Loui's treatment of argument-based nomonotonic reasoning \cite{Simari+:1992:AIJ} has been a strong influence in the definition of the nonmonotonic consequence below; parallels will be obvious. No contributions are made in relation to the literature and lines of research on argumentation-based nonmonotonic reasoning in artificial intelligence; we are using established ideas and organizing them to respond to the present problem. 
+
+We go step by step below towards the definition of \nlref, within a nonmonotonic formal system for the representation of refinements and reasoning thereon. In terms of reasoning, we are interested in whether the obligations of a refinement are violated. We start with the details of the formal system (\S\ref{sect:nlref:language}), then define \nlref\ via the obligations, themselves written in the language (\S\ref{sect:nlref:obligations}). The section closes with the discussion of some basic reasoning about refinements (\S\ref{sect:nlref:reasoning}).
+%(e.g., checking the status of a refinement after new information is added) (\S\ref{sect:nlref:reasoning}).
+
+
+\subsection{Language}\label{sect:nlref:language}
+\textbf{Overview.} We build the formal system $\mathbb{A}$ in order to define \nlref\ using the facilities of $\mathbb{A}$. The language of $\mathbb{A}$ consists of a \textit{propositional language} $\mathcal{L}$ and a binary relationship called \textit{conclude} between well formed formulas of $\mathcal{L}$. Expressions in $\mathcal{L}$ are formed over propositions, whereby a proposition is (as usual) a shareable content of beliefs, desires, or intentions and the primary bearer of truth and falsity \cite{McGrath:2008:SEP}. Propositions are assumed written in \textsc{nl}, and capture the information communicated or otherwise made available to the stakeholders and the engineer over the course of the early steps of \textsc{re}, before it is relevant to rewrite some of these (potentially transformed) propositions in a predicate formalism. Sorts of propositions are distinguished to separate the propositions conveying relationships between other propositions, from the propositions they convey these relationships between. Of particular interest are the conclude relationship, and its variant, the \textit{defeat} relationships. E.g., the proposition ``\textsf{the conjunction of propositions} $p_{1}, \ldots, p_{n}$ \textsf{is a prima facie reason to conclude} $p$'' is an instance of the conclude relationship, written $\left(\bigwedge_{i=1}^{n}p \right) \rsarrow p$. The defeat relationship is introduced to mark that the satisfaction of some proposition(s) is prima facie reason for the failure of another proposition. E.g., the proposition ``\textsf{the conjunction of propositions} $p_{1}, \ldots, p_{n}$ \textsf{is a prima facie reason to conclude the failure of} $p$'' is an instance of the defeat relationship, and is written $\left(\bigwedge_{i=1}^{n}p \right) \dashrightarrow p$. We refer to $\rsarrow$ and $\dashrightarrow$ as, respectively, the conclude and defeat connectives, and call a \textit{defeasible rule} any expression having either the form $A \rsarrow B$ or $X \dashrightarrow Y$. The language of $\mathbb{A}$ thus involves two kinds of expressions, defeasible rules and expressions written in $\mathcal{L}$. Given a set of expressions in $\mathcal{L}$ and a set of defeasible rules, we are interested in deriving expressions from those in the set and in determining which of them are satisfied. In a purely deductive formalism, the reasoner would establish as satisfied all theorems. In the case of defeasible reasoning, the conclusions of some of the premises may defeat other premises and/or conclusions, so that only some conclusions should be evaluated as satisfied. After discussing the syntax, we provide an account of derivation in $\mathbb{A}$, of the interpretation of syntactic elements in $\mathbb{A}$, and finally, of how to evaluate satisfaction.
+
+
+\textbf{Syntax.} Let $p$, $q$, $r$, $s$, indexed or primed when needed, be symbols for propositions. $(P, S)$ is the signature of the propositional language $\mathcal{L}$, where $P$ and $S$ are sets of, respectively, symbols for propositions and sorts. Each proposition $p \in P$ is sorted, so that $P$ partitions onto sets of propositional symbols for each sort; if $p$ is of sort $\sigma$, then $p \in P_{\sigma}$. We start with three sorts, the symbols of which are $S = \{ \srt{i}, \srt{C}, \srt{D} \}$, and discuss the specialization of sorts later on. Expressions over the members of $P$ are formed via standard propositional connectives: negation $\neg$, conjunction $\wedge$, disjunction $\vee$, and implication $\rightarrow$. $|S|$ unary operators are also used, one per sort in $S$, in order to abbreviate $p \in P_{\srt{i}}$ by $\srt{i}p$, and so on, for each sort. Defeasible rules are expressions formed by connecting two expressions of $\mathcal{L}$ via the conclude $\rsarrow$ and defeat $\dashrightarrow$ connectives. 
+
+\begin{definition}\label{def:symbolic-syntax}
+	\textbf{Symbolic Syntax.} For a given signature $(P, S)$, the set of well-formed formulas (wffs) is the smallest set of expressions built by applying the following rules, and only those, finitely many times:
+	\begin{enumerate}
+		\item{Every $\sigma p$ with $p \in P_{\sigma}$ and $\sigma \in S$ is an $\sigma$-atom.}
+		\item{If $\srt{i}p$ is an $\srt{i}$-atom, then $\neg\srt{i}p$ is an $\srt{i}$-wff.}
+		\item{If $\psi$ and $\phi$ are $\srt{i}$-wffs, then so are $\psi \wedge \phi$, $\psi \vee \phi$, and $\psi \rightarrow \phi$.}
+		\item{If $\psi$ and $\phi$ are $\srt{i}$-wffs, then $\psi \rsarrow \phi$ and $\psi \dashrightarrow \phi$ are defeasible rules.}
+		\item{Every $\sigma$-atom, $\srt{i}$-wff, and defeasible rule is a wff.}
+	\end{enumerate}
+\end{definition}
+
+%
+%\begin{definition}\label{def:symbolic-syntax}
+%	\textbf{Symbolic Syntax.} For a given signature $(P, S)$, the set of well-formed formulas (wffs) is the smallest set of expressions built via the following rules, and only those, finitely many times:
+%	\begin{enumerate}
+%		\item{Every $\sigma p$ with $p \in P_{\sigma}$ and $\sigma \in S$ is a $\sigma$-atom.}
+%%		\item{Any $\srt{i}(\neg p)$ or $\srt{i} p$ is an $\srt{i}$-literal.}
+%		\item{Every $\sigma$-atom is a wff.}
+%		\item{For any set $\{ \psi_{i} \mid 1 \leq i \leq n \}$ of $\srt{i}$-atoms, $\left(\bigwedge_{i=1}^{n-1}\psi_{i} \right) \rsarrow \psi_{n}$ and $\left(\bigvee_{i=1}^{n-1}\psi_{i} \right) \rsarrow \psi_{n}$ are both wffs.}
+%		\item{For any set $\{ \psi_{i} \mid 1 \leq i \leq n \}$ of $\srt{i}$-atoms, $\left(\bigwedge_{i=1}^{n-1}\psi_{i} \right) \rsarrow \neg\psi_{n}$ and $\left(\bigvee_{i=1}^{n-1}\psi_{i} \right) \rsarrow \neg\psi_{n}$ are both wffs.}
+%		\item{For any set $\{ \{ \psi_{ij} \mid 1 \leq i \leq n \} \mid 2 \leq j \leq m \}$ of sets of $\srt{i}$-atoms and another $\srt{i}$-atom $\psi$, $\left(\bigvee_{j=2}^{m}(\bigwedge_{i=1}^{n}\psi_{ij})\right) \rsarrow \psi$ and $\left(\bigvee_{j=2}^{m}(\bigwedge_{i=1}^{n}\psi_{ij})\right) \rsarrow \neg\psi$ are both wffs.}
+%		\item{If $\Psi$ and $\Phi$ are two wffs, then so is $\Psi \wedge \Phi$.}
+%%		\item{Every $\srt{i}p$ with $p \in P_{\srt{i}}$ is an X-wff.}
+%%		\item{If $\psi$ and $\phi$ are two X-wffs, then $\psi \wedge \phi$ and $\psi \vee \phi$ are both X-wffs.}
+%%		\item{$\neg\psi$ is an X-wff only if $\psi \in P_{\srt{i}}$.}
+%%		\item{$\psi \rightsquigarrow \phi$ is an Y-wff only if $\psi$ is an X-wff and $\phi \in P_{\srt{i}}$ is an X-wff.}
+%%		\item{$\psi \dashrightarrow \phi$ is an Y-wff only if $\psi$ is an X-wff and $\phi \in P_{\srt{i}}$ is an X-wff.}
+%%		\item{If $\Psi$ and $\Phi$ are Y-wffs, then so is $\Psi \wedge \Phi$.}
+%%		\item{Every $\srt{R}p$ is a Z-wff, and every $\srt{C}p$ is a Z-wff.}
+%%%		\item{Every $\srt{i}p$ with $p \in P_{\srt{i}}$ is a wff.}
+%%%		\item{Every $\neg\srt{i}p$ with $p \in P_{\srt{i}}$ is a wff.}
+%%%		\item{If $\psi$ and $\phi$ are two wffs, then so are $\psi \wedge \phi$ and $\psi \rightsquigarrow \phi$.}
+%	\end{enumerate}
+%\end{definition}
+
+\begin{remark}
+$\neg\srt{i}p$ is equivalent to $\srt{i}(\neg p)$. $\{ \neg, \wedge, \rsarrow \}$ are basic connectives, the others are defined: $\psi \vee \phi$ abbreviates $\neg(\neg \psi \wedge \neg \phi)$, $\psi \rightarrow \phi$ abbrev. $\neg\psi \vee \phi$, and $\psi \dashrightarrow \phi$ abbrev. $\psi \rightsquigarrow \neg\phi$.
+%We have the following equivalences: (i) $\neg\srt{i}p \equiv \srt{i}(\neg p)$; (ii) $\psi \vee \phi \equiv \neg(\neg \psi \wedge \neg \phi)$; (iii) $\psi \rightarrow \phi \equiv \neg\psi \vee \phi$; and (iv) $\psi \dashrightarrow \phi \equiv \psi \rightsquigarrow \neg\phi$.
+\end{remark}
+
+\begin{remark}
+According to Definition \ref{def:symbolic-syntax}, expressions with connectives in $\mathcal{L}$ are formed only over $\srt{i}$-atoms. Hence, $\srt{i}p \wedge \srt{i}q$ is a wff, but $\srt{D}r \wedge \srt{D}s$ is not. The reason why this is intended, is that the only purpose here for each $\srt{C}$- and $\srt{D}$-atom is to state the relationship between $\srt{i}$-propositions. We discuss this further below, in the presentation of the interpretation of wffs in $\mathbb{A}$.
+\end{remark}
+
+
+\textbf{Derivation.} The question at present is what other formulas can be derived from a given set of formulas in $\mathbb{A}$. 
+
+%\begin{remark}
+%In a defeasible rule of the form $A \rsarrow B$, $A$ is called the \textit{tail} and $B$ the \textit{head}. For a wff $A$, $\textit{atoms}(A)$ returns the set of atoms in $A$. 
+%\end{remark}
+
+\begin{remark}
+Any axiomatization of $\mathcal{L}$ is acceptable in the rest of the discussion, as long modus ponens is attached to the axiomatization as a rule of inference. 
+\end{remark}
+
+\begin{definition}\label{def:derivation}
+	\textbf{Consequence.} Let $\phi$ be an $\srt{i}$-wff and $\Gamma = \{ \psi_{i} \mid 1 \leq i \leq n \}$ a set, where each $\psi_{i}$ is either an $\srt{i}$-wff or a defeasible rule in $\mathbb{A}$. $\phi$ is a consequence of $\Gamma$, written $\Gamma \nmdash \phi$ if and only if:
+	\begin{enumerate}
+		\item{there is a sequence $\langle B_{1}, \ldots, B_{m} \rangle$, called a derivation from $\Gamma$, such that $\phi = B_{m}$ and, for each $j$, either $B_{j}$ is in $\Gamma$, or $B_{j}$ is an axiom of $\mathcal{L}$, or $B_{j}$ is a direct consequence of the preceding members of the sequence using modus ponens. Defeasible rules are regarded as material implications for the application of modus ponens; and}
+		\item{there is no derivation from $\Gamma$ to $\neg\phi$.}
+	\end{enumerate}
+\end{definition}
+
+\begin{example}
+Let $\Gamma = \{ \srt{i}p_{1}, \srt{i}p_{2}, \srt{i}p_{3}, \srt{i}p_{4}, \srt{i}p_{1} \wedge \srt{i}p_{2} \rsarrow \srt{i}p_{5}, \srt{i}p_{3} \wedge \srt{i}p_{4} \rsarrow \srt{i}p_{6}, \srt{i}p_{5} \wedge \srt{i}p_{6} \rsarrow \srt{i}p_{7} \}$. It is clear that $\Gamma \nmdash \srt{i}p_{7}$, by the derivation $\langle \srt{i}p_{1}, \srt{i}p_{2}, \srt{i}p_{5}, \srt{i}p_{3}, \srt{i}p_{4}, \srt{i}p_{6}, \srt{i}p_{7} \rangle$.
+\end{example}
+
+\begin{proposition}
+Consequence relation $\nmdash$ is nonmonotonic.
+\end{proposition}
+
+\begin{proof}
+If we have $\{ \srt{i}p \}$, then $\{ \srt{i}p \} \nmdash \srt{i}p$. If we add $\srt{i}q$ and $\srt{i}q \rsarrow \neg\srt{i}{p}$ to $\{ \srt{i}p \}$, then $\srt{i}p$ is not a consequence of $\{ \srt{i}p \} \cup \{ \srt{i}q, \srt{i}q \rsarrow \neg\srt{i}{p} \}$.
+\end{proof}
+
+
+\textbf{Interpretation.} Two particular considerations must be accounted for in defining the interpretation of a signature $(P, S)$. The first concerns the idea that an $\srt{C}$- or $\srt{D}$-atom \textit{conveys} conclude or defeat relationships between $\srt{i}$-atoms. The second focuses on the potential for partitioning the set of all $\srt{i}$-atoms, or equivalently, specializing the sort $\srt{i}$. 
+
+Since any one $\srt{C}$- or $\srt{D}$-atom conveys either the conclude or the defeat relationship between $\srt{i}$-atoms, $\mathbb{A}$ must incorporate facilities that relate the former propositions to the latter sets of propositions: we must make explicit that any wff involving the conclude and defeat connectives requires the presence of one/more $\srt{C}$- or $\srt{D}$-atoms. E.g., anytime we have a wff $\left(\bigwedge_{i=1}^{n-1}\psi_{i} \right) \rsarrow \psi_{n}$, there must be an $\srt{C}p$ that conveys the said relationship between $\psi_{1},\ldots,\psi_{n}$. We make this explicit below within the interpretation of a signature (cf., Definition \ref{def:interpretation}). 
+
+We have argued throughout the preceding sections that early requirements expressed in \textsc{nl} cannot be refined via goal refinement, and have introduced sorts to distinguish, so to speak, the ``relationship propositions'' (i.e., $\srt{C}$- and $\srt{D}$-atoms) from $\srt{i}$-atoms. The question then is what propositions are admissible as $\srt{i}$-atoms? This depends entirely on the choice of a taxonomy of requirements, which will delimit the kinds of information we are interested in. Suppose that we choose to use with $\mathbb{A}$ some taxonomy $\mathfrak{T}$ of requirements, where $\mathfrak{T}$ is represented as a tree, in which the nodes symbolize the concepts of the taxonomy and the links are instances of the standard \textit{is-a} relationship. If $N(\mathfrak{T})$ is the set of all nodes of $\mathfrak{T}$, then our interpretation of a signature $(P, S)$ must partition $P_{\srt{i}}$ onto sets of symbols for propositions that instantiate each of the concepts in $N(\mathfrak{T})$ -- i.e., $P_{\srt{i}}$ will have $|N(\mathfrak{T})|$ partitions. E.g., if a taxonomy says that any requirement is either a goal or a task, then $P_{\srt{i}} = P_{\textit{goal}} \cup P_{\textit{task}}$, and an interpretation will map each goal $p \in P_{\textit{goal}}$ or task proposition symbol $p \in P_{\textit{task}}$ to, respectively, a goal or task proposition. For the sake of generality, we do not choose at this point a specific taxonomy of requirements, but simply acknowledge that some taxonomy $\mathfrak{T}$ is used together with $\mathbb{A}$. 
+
+\begin{remark}
+In Definition \ref{def:interpretation}, we assume the following: (a) $\mathfrak{T}$ a taxonomy of requirements; (b) $N(\mathfrak{T})$ the set of symbols, one for each node in $\mathfrak{T}$; and (c) $\mathcal{C}(\srt{c} \in N(\mathfrak{T}))$ a function that returns the concept in $\mathfrak{T}$ that is symbolized by a given member of $N(\mathfrak{T})$. Since there is a taxonomy $\mathfrak{T}$ of requirements, we replace $\srt{i}$ in $S$ with the members of $N(\mathfrak{T})$ (i.e., the symbols for the various kinds of requirements), and have $S = \{ \srt{C}, \srt{D} \} \cup N(\mathfrak{T})$ in a signature $(P, S)$.
+\end{remark}
+
+\begin{definition}\label{def:interpretation}
+	\textbf{Interpretation.} An interpretation $\mathcal{I}$ of a signature $(P, S)$ in $\mathbb{A}$ is a function satisfying only all following properties:
+	\begin{enumerate}
+		\item{For each sort $\sigma \in S$, $\mathcal{I}(P_{\sigma})$ is a set of propositions.}
+		\item{For each $\srt{c} \in N(\mathfrak{T})$ and $p \in P_{\srt{c}}$, $\mathcal{I}(\srt{c}p)$ is an instance of the concept $\mathcal{C}(\srt{c})$.}
+		\item{For each $p \in P_{\srt{C}}$, $\mathcal{I}(\srt{C}p)$ is an instance of the \textsf{Conclude} relationship, whereby an instance of the conclude relationship conveys that an $\mathcal{I}(\psi)$ is prima facie reason for $\mathcal{I}(\phi)$, where $\psi$ and $\phi$ are $\srt{i}$-wffs.}
+%		\item{For each $p \in P_{\srt{O}}$, $\mathcal{I}(\srt{O}p)$ is a set $\{ \mathcal{I}(\srt{A}\psi_{i}) \mid 2 \leq i \leq m \}$ of instances of the \textsf{Conclude} relationship, whereby any one member $\mathcal{I}(\srt{A}\psi_{i})$ of that set conveys that an $\mathcal{I}(\psi_{i})$ is prima facie reason for $\mathcal{I}(\phi)$. All members of $\{ \psi_{i} \mid 2 \leq i \leq n \} \cup \{ \phi \}$ are $\srt{i}$-wffs.}
+		\item{For each $p \in P_{\srt{D}}$, $\mathcal{I}(\srt{D}p)$ is an instance of the \textsf{Defeat} relationship, whereby an instance of the defeat relationship conveys that an $\mathcal{I}(\psi)$ is prima facie reason for $\mathcal{I}(\neg\phi)$, where $\psi$ and $\neg\phi$ are $\srt{i}$-wffs.}
+%		\item{For each $p \in P_{\srt{A}}$, $\mathcal{I}(\srt{A}p)$ is an instance of the \textsf{Conclude} relationship, whereby an instance of the \textsf{Conclude} relationship indicates that the conjunction of all propositions in the set $\{ \mathcal{I}(\srt{x}_{i}q_{i}) \mid 1 \leq i \leq n-1 \}$ is prima facie reason for $\mathcal{I}(\srt{x}_{n}q_{n})$, where any member of $\{ \srt{x}_{i} \mid 1 \leq i \leq n \}$ is any one member of $X$.}
+%		\item{For each $p \in P_{\srt{O}}$:
+%			\begin{enumerate}
+%				\item{$\mathcal{I}(\srt{O}p)$ is a set $\{ \mathcal{I}(\srt{A}p_{j}) \mid 2 \leq j \leq m \}$ of instances of the \textsf{Conclude} relationship; and}
+%				\item{any instance $j$ of these $m$ instances indicates that the conjunction of all propositions in the set $\{ \mathcal{I}(\srt{x}_{ij}q_{ij}) \mid 1 \leq i \leq n \}$ is prima facie reason for $\mathcal{I}(\srt{x}q)$, where any member of $\{ \srt{x}_{ij} \mid 1 \leq i \leq n,\ 2 \leq j \leq m \} \cup \{ \srt{x} \}$ is any one member of $X$.}
+%			\end{enumerate}
+%		}
+%		\item{For each $p \in P_{\srt{C}}$, $\mathcal{I}(\srt{C}p)$ is an instance of the \textsf{Defeat} relationship, whereby any instance of the \textsf{Defeat} relationship indicates that the conjunction of all propositions in the set $\{ \mathcal{I}(\srt{x}_{i}q_{i}) \mid 1 \leq i \leq n-1 \}$ is prima facie reason for $\mathcal{I}(\neg\srt{x}_{n}q_{n})$, where any member of $\{ \srt{x}_{i} \mid 1 \leq i \leq n \}$ is any one member of $X$.}
+	\end{enumerate}
+\end{definition}
+
+\begin{remark}
+	According to Definition \ref{def:interpretation}, the codomain of $\mathcal{I}$ consists of instances of all concepts in the requirements taxonomy $\mathfrak{T}$, and the instances of the conclude and defeat relationship.
+\end{remark}
+
+
+\textbf{Evaluation.} The participation of potentially many stakeholders and engineers to the early phase of \textsc{re} can usually be expected. Each will offer information, which will be symbolized by $\sigma$-atoms and wffs in $\mathbb{A}$. Assume consequently $m$ participants, or sources of information. Each participant $k$ volunteers the information $I_{k}$, where $I_{k}$ is a (potentially inconsistent) set of $\sigma$-atoms and $\srt{i}$-wffs. We assume for simplicity that there is a single set $\Delta$ of defeasible rules, and that all $m$ participants agree on it.\footnote{\small{Releasing this assumption is an important topic for future work, allowing thereby updates to the set $\Delta$, which certainly can happen over the course of early \textsc{re}.}} Given $(I_{k}, \Delta)$, the $k$-th participant can voice arguments. Given a set of arguments from different participants, the aim of evaluation is to tell us if a particular piece of information (an $\srt{i}$-wff) is satisfied or denied. In intuitive terms, evaluation tells us what the participants agree on. We assume below that $I = \bigcup_{k=1}^{m}I_{k}$.
+
+\begin{definition}\label{def:argument}
+	\textbf{Argument.} Given a set of $\srt{i}$-wffs $I$ and a set $\Delta$ of defeasible rules, $(A, D),\ A \subseteq I,\ D \subseteq \Delta$ is an argument for an $\srt{i}$-wff $\phi$, denoted $\langle A, D, \phi \rangle$, if and only if:
+	\begin{enumerate}
+		\item{(Consequence:) $A \cup D \nmdash \phi$,}
+		\item{(Consistency:) $A \cup D \not\nmdash \bot$, and}
+		\item{(Minimality:) $\not\exists A^{\prime} \subset A,\ A^{\prime} \cup D \nmdash \phi$ and $\not\exists D^{\prime} \subset D,\ A \cup D^{\prime} \nmdash \phi$.}
+	\end{enumerate}
+\end{definition}
+
+%\begin{definition}\label{def:attack}
+%	\textbf{Attack.} An argument $\langle A, D_{1}, \phi_{1} \rangle$ attacks another argument $\langle A, D_{2}, \phi_{2} \rangle$ if and only if (i) there is an argument $\langle A, D, \phi \rangle$, such that $D \subseteq D_{2}$, and (ii) $A \cup \{ \phi_{1}, \phi \}$ is inconsistent.
+%\end{definition}
+
+\begin{definition}\label{def:attack}
+%	\textbf{Attack.} An argument $\langle A_{1}, D_{1}, \phi_{1} \rangle$ attacks another argument $\langle A_{2}, D_{2}, \phi_{2} \rangle$ if and only if $A_{1}, D_{1} \nmdash \neg\psi$ and $\psi \in A_{2} \cup \{ \phi_{2} \}$.
+	\textbf{Attack.} An argument $\langle A_{1}, D_{1}, \phi_{1} \rangle$ attacks another argument $\langle A_{2}, D_{2}, \phi_{2} \rangle$ if and only if $A_{1} \cup A_{2}, D_{1} \cup D_{2} \nmdash \bot$.
+\end{definition}
+
+\begin{definition}\label{def:support}
+%	\textbf{Support.} An argument $\langle A_{1}, D_{1}, \phi_{1} \rangle$ supports another argument $\langle A_{2}, D_{2}, \phi_{2} \rangle$ if and only if $A_{1}, D_{1} \nmdash \psi$ and $\psi \in A_{2} \cup \{ \phi_{2} \}$.
+\textbf{Support.} An argument $\langle A_{1}, D_{1}, \phi_{1} \rangle$ supports another argument $\langle A_{2}, D_{2}, \phi_{2} \rangle$ if and only if $A_{1}, D_{1} \nmdash \psi$, such that $\psi \in A_{2}$. 
+\end{definition}
+
+\begin{example}\label{ex:attack-support}
+Consider $\langle \{ \srt{i}p_{1} \wedge \srt{i}p_{2}, \neg\srt{i}p_{3} \}, \{ \srt{i}p_{1} \wedge \srt{i}p_{2} \dashrightarrow \srt{i}p_{3}, \neg\srt{i}p_{3} \rsarrow \srt{i}p \}, \srt{i}p \rangle$ and $\langle \{ \srt{i}p_{3} \}, \{ \srt{i}p_{3} \rsarrow \srt{i}p_{4} \}, \srt{i}p_{4} \rangle$. The latter is an argument; the former is not, for it is not minimal. The former can be rewritten as two arguments: $\langle \{ \srt{i}p_{1} \wedge \srt{i}p_{2} \}, \{ \srt{i}p_{1} \wedge \srt{i}p_{2} \dashrightarrow \srt{i}p_{3} \}, \neg\srt{i}p_{3} \rangle$ and $\langle \{ \neg\srt{i}p_{3} \}, \{ \neg\srt{i}p_{3} \rsarrow \srt{i}p \}, \srt{i}p \rangle$. $\langle \{ \srt{i}p_{1} \wedge \srt{i}p_{2} \}, \{ \srt{i}p_{1} \wedge \srt{i}p_{2} \dashrightarrow \srt{i}p_{3} \}, \neg\srt{i}p_{3} \rangle$ attacks $\langle \{ \srt{i}p_{3} \}, \{ \srt{i}p_{3} \rsarrow \srt{i}p_{4} \}, \srt{i}p_{4} \rangle$ via $\srt{i}p_{3}$. The argument $\langle \{ \srt{i}p_{1} \wedge \srt{i}p_{2} \}, \{ \srt{i}p_{1} \wedge \srt{i}p_{2} \dashrightarrow \srt{i}p_{3} \}, \neg\srt{i}p_{3} \rangle$ supports the argument $\langle \{ \neg\srt{i}p_{3} \}, \{ \neg\srt{i}p_{3} \rsarrow \srt{i}p \}, \srt{i}p \rangle$.
+\end{example}
+
+\begin{remark}
+If $\langle A_{1}, D_{1}, \phi_{1} \rangle$ supports $\langle A_{2}, D_{2}, \phi_{2} \rangle$, we call the former the \textit{supporter}; if $\langle A_{1}, D_{1}, \phi_{1} \rangle$ attacks $\langle A_{2}, D_{2}, \phi_{2} \rangle$, then we call the former \textit{attacker}.
+\end{remark}
+
+Given a set of arguments, we can chain them via attack and support relationships, and then evaluate the $\srt{i}$-wffs in all chained arguments. To evaluate whether an argument is satisfied (equivalently, acceptable or justified), we consider if all of its supporting arguments are themselves satisfied, and if all of its attacking arguments are all themselves attacked. To provide the sufficient conditions for the satisfaction of an argument in a given set $\textbf{A}$ of arguments, we need an argument network for $\textbf{A}$. 
+
+\begin{definition}\label{def:argument-network}
+	\textbf{Argument Network.} Let $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$ be a directed labeled and connected graph, and $\textbf{A}$ a set of arguments. $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$ is called an argument network for $\textbf{A}$ if and only if it has the following properties:
+		\begin{enumerate}
+			\item{$\textbf{G}(N(\textbf{G}), L(\textbf{G}))$ is acyclic;}
+			\item{no two nodes in $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$ are connected by more than one line;}
+			\item{$N(\textbf{G}) \equiv \textbf{A}$, i.e., arguments are nodes;}
+			\item{for any pair of distinct arguments $(\textbf{a}_{i}, \textbf{a}_{j}),\ \textbf{a}_{i} \neq \textbf{a}_{j}$ in $\textbf{A}$:
+				\begin{enumerate}
+					\item{$\exists \textbf{a}_{i}\textbf{a}_{j} \in L(\textbf{G})$ labeled A only if $\textbf{a}_{i}$ attacks $\textbf{a}_{j}$;}
+					\item{$\exists \textbf{a}_{i}\textbf{a}_{j} \in L(\textbf{G})$ labeled S only if $\textbf{a}_{i}$ supports $\textbf{a}_{j}$.}
+				\end{enumerate}}
+		\end{enumerate}
+\end{definition}
+
+\begin{remark}
+In Definition \ref{def:argument-network}, $N(\textbf{G})$ and $L(\textbf{G})$ denote, respectively, the set of nodes and lines of the graph $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$. A line directed from a node $\textbf{a}_{i}$ to a node $\textbf{a}_{j}$ is written $\textbf{a}_{i}\textbf{a}_{j}$. 
+\end{remark}
+
+\begin{remark}
+The first condition in Definition \ref{def:argument-network} makes the evaluation procedure below not applicable to cyclical argument networks. This limitation either demands the preprocessing of a cyclical argument network, to eliminate cycles prior to evaluation, or evaluation conditions robust w.r.t. cycles. Pollock recently discussed the latter \cite{Pollock:2009:AAI}. 
+\end{remark}
+
+\begin{definition}\label{def:labeling-procedure}
+	\textbf{Labeling Procedure.}  Nodes of a connected argument network $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$ are recursively labeled as follows:
+	\begin{enumerate}
+		\item{Leaves of $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$ are labeled \texttt{U}.}
+		\item{If $\textbf{a}$ is an inner node of $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$, then $\textbf{a}$ is labeled \texttt{U} only if each of its attackers is labeled \texttt{D} and each of its supporters is labeled \texttt{U}.}
+	\end{enumerate}
+\end{definition}
+
+\begin{definition}\label{def:justified-argument}
+\textbf{Justified Argument.} Given a labeled argument network $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$, an argument $\textbf{a} \in N(\textbf{G})$ is justified if and only if it is labeled $\texttt{U}$ in that labeled argument network.
+\end{definition}
+
+%\begin{definition}\label{def:justified}
+%	\textbf{S- and A-Arguments.} In a set $\textbf{A}$ of arguments:
+%	\begin{enumerate}
+%		\item{All arguments are (level-0) S-arguments (supporting arguments) and A-arguments (attacking arguments).}
+%		\item{An argument $\textbf{a}_{i} \in \textbf{A}$ is a level-$(n+1)$ S-argument if and only if there is no level-$n$ A-argument $\textbf{a}_{j} \in \textbf{A}$, which attacks $\textbf{a}_{i}$.}
+%		\item{An argument $\textbf{a}_{i}$ is a level-$(n+1)$ A-argument if and only if there is no level-$n$ A-argument $\textbf{a}_{j} \in \textbf{A}$, which attacks $\textbf{a}_{i}$.}
+%	\end{enumerate}
+%\end{definition}
+
+\begin{example}\label{ex:arg-net-lab}
+Following Example \ref{ex:attack-support}, let $\textbf{a}_{1} = \langle \{ \srt{i}p_{1} \wedge \srt{i}p_{2} \}, \{ \srt{i}p_{1} \wedge \srt{i}p_{2} \dashrightarrow \srt{i}p_{3} \}, \neg\srt{i}p_{3} \rangle$, $\textbf{a}_{2} = \langle \{ \neg\srt{i}p_{3} \}, \{ \neg\srt{i}p_{3} \rsarrow \srt{i}p \}, \srt{i}p \rangle$, and $\textbf{a}_{3} = \langle \{ \srt{i}p_{3} \}, \{ \srt{i}p_{3} \rsarrow \srt{i}p_{4} \}, \srt{i}p_{4} \rangle$. Figures \ref{ex:arg-net-lab:a} and \ref{ex:arg-net-lab:b} illustrate the argument network from these three arguments, resectively, without labels, and with labels. In Figure \ref{ex:arg-net-lab:b}, $\textbf{a}_{1}$ and $\textbf{a}_{2}$ are both labeled $\texttt{U}$, and $\textbf{a}_{3}$ is labeled $\texttt{D}$, so that $\textbf{a}_{1}$ and $\textbf{a}_{2}$ are justified, and $\textbf{a}_{3}$ is not justified. Figure \ref{ex:arg-net-lab:c} gives a labeled argument network obtained after adding an argument $\textbf{a}_{4}$, which attacks $\textbf{a}_{1}$.
+\end{example}
+
+\begin{figure}[t]
+\centering	\subfigure[][\label{ex:arg-net-lab:a}]{
+		\xymatrix @R=7mm @C=7mm{
+			& \textbf{a}_{3} \\
+			\textbf{a}_{1} \ar[r]|-{S} \ar[ur]|-{A} & \textbf{a}_{2} \ar[u]|-{A} \\
+			}
+	}%
+	\qquad
+	\subfigure[][\label{ex:arg-net-lab:b}]{
+		\xymatrix @R=7mm @C=7mm{
+			& \textbf{a}_{3}^{\textbf{\texttt{D}}} \\
+			\textbf{a}_{1}^{\textbf{\texttt{U}}} \ar[r]|-{S} \ar[ur]|-{A} & \textbf{a}_{2}^{\textbf{\texttt{U}}} \ar[u]|-{A} \\
+			}
+	}%
+	\qquad
+	\subfigure[][\label{ex:arg-net-lab:c}]{
+		\xymatrix @R=7mm @C=7mm{
+			\textbf{a}_{4}^{\textbf{\texttt{U}}} \ar[d]|-{A} & \textbf{a}_{3}^{\textbf{\texttt{U}}} \\
+			\textbf{a}_{1}^{\textbf{\texttt{D}}} \ar[r]|-{S} \ar[ur]|-{A} & \textbf{a}_{2}^{\textbf{\texttt{D}}} \ar[u]|-{A} \\
+			}
+	}
+\caption{Example \ref{ex:arg-net-lab}.}
+\label{fig:ex:arg-net}
+\end{figure}
+
+\begin{proposition}\label{prop:labeling-procedure}
+Given a finite and connected argument network, each node has either the label $\texttt{U}$ or $\texttt{D}$, and the labeling procedure (cf., Definition \ref{def:labeling-procedure}) will find it.
+\end{proposition}
+
+\begin{proof}
+By Definition \ref{def:argument-network}, any argument network is acyclic. Moreover, Proposition \ref{prop:labeling-procedure} assumes the argument network to be finite and connected. The first rule in the labeling procedure assigns $\texttt{U}$ to all leaves. Starting from each leaf, an ancestor node is considered, and is labeled according to the labels on its children and the labels $A$ or $S$ on lines from its children. The labeling stops when the nodes without ancestors are reached and labeled. Since the argument network is finite and acyclic, there is a finite number of (simple) paths from each leaf to each node without ancestors. It is apparent that no inner node will remain unlabeled. To see why, suppose that there is an inner node, and remains unlabeled. This is only possible if there is no path from a leaf to that inner node, which is a contradiction, since it is assumed an inner node. 
+\end{proof}
+
+
+\subsection{Obligations}\label{sect:nlref:obligations}
+\begin{definition}\label{def:nl-refinement}
+\textbf{\nlref.} Given a potentially inconsistent set $I$ of $\srt{i}$-wffs and a set $\Delta$ of defeasible rules, let $\textbf{A}$ be the maximal set of arguments from $I$ and $\Delta$, and $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$ an argument network with $N(\textbf{G}) \equiv \textbf{A}$. We say that $I^{\prime} \subseteq I$ \textsc{nl}-refines $\psi$ if and only if:
+	\begin{enumerate}
+		\item{$\langle I^{\prime}, \Delta^{\prime}, \psi \rangle$ is an argument, and $\langle I^{\prime}, \Delta^{\prime}, \psi \rangle \in \textbf{A}$, and}
+		\item{$\langle I^{\prime}, \Delta^{\prime}, \psi \rangle$ is justified in the labeled $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$.}
+	\end{enumerate}
+\end{definition}
+
+\begin{definition}\label{def:maximal-arguments}
+\textbf{Maximal Set of Arguments.} $\textbf{A}$ is the maximal set of arguments from a potentially inconsistent set $I$ of $\srt{i}$-wffs and a set $\Delta$ of defeasible rules if and only if there is no argument $\langle I^{\prime}, \Delta^{\prime}, \phi \rangle \notin \textbf{A}$ such that $I^{\prime} \subseteq I$ or $\Delta^{\prime} \subseteq \Delta$.
+\end{definition}
+
+To contrast the definition above to goal refinement, recall that the obligations for \textsc{and}-goal refinement are (cf., \S\ref{sect:introduction}) logical consequence (C1), minimality (C2), consistency (C3), and (C4), which we shall call non-triviality. Within $\mathbb{A}$, the first condition in Definition \ref{def:nl-refinement} indicates that nonmonotonic consequence, minimality, and consistency obligations in \nlref. Intuitively, they can be seen as analogues to the conditions (C1)--(C3) in \nlref. There is no obligation in \nlref\ that is inspired or corresponds to non-triviality, which was introduced in \textsc{and}-goal refinement ``to avoid trivial refinements consisting in rewriting [a goal] into logically equivalent forms'' \cite{Darimont+:1996:FSE}. The presumable intention behind the non-triviality constraint in \textsc{and}-goal refinement is to avoid the use of different syntactical representations of the same relationships in the application domain. Roughly speaking, the aim is to ban the refinement that amounts to the simple rewriting of the same information. Non-triviality plays out in a rather different manner in \nlref. Consider an example: suppose that in the argument $\langle \{ \srt{i}p \}, \{ \srt{i}p \rsarrow \srt{i}q \}, \srt{i}q \rangle$, $\srt{i}p$ is the proposition ``\textsf{Inform the customer of price changes via email}'' and $\srt{i}q$ is the proposition ``\textsf{Inform the customer of price changes}''. If this argument turns out to be justified within some given argument network, then we shall conclude that $\srt{i}p$ \textsc{nl}-refines $\srt{i}q$. Now, the non-triviality constraint in \textsc{and}-goal refinement is a syntactic one: if we imposed it on the argument $\langle \{ \srt{i}p \}, \{ \srt{i}p \rsarrow \srt{i}q \}, \srt{i}q \rangle$, $\srt{i}p$, then that argument would not be a refinement, because $\{ \srt{i}p \}$ is a singleton and the non-triviality constraint asks that at least one additional piece of information be added to the set $\{ \srt{i}p \}$. In contrast, we see that $\srt{i}p$ in fact is more detailed than $\srt{i}q$, and we may well be content with that refinement as it is. That we make no use of the syntactic non-triviality constraint does not mean that we have no way to avoid trivial refinements given by rewriting propositions. Suppose that we have the argument $\langle \{ \srt{i}p^{\prime} \}, \{ \srt{i}p^{\prime} \rsarrow \srt{i}q^{\prime} \}, \srt{i}q^{\prime} \rangle$, so that $\srt{i}p^{\prime}$ is the proposition ``\textsf{The customer should always be informed of price changes}'' and $\srt{i}q^{\prime}$ is the proposition ``\textsf{Always inform the customer of price changes}''. Disregarding grammatical nuances leads to the conclusion that $\srt{i}p^{\prime}$ is a simple rewriting of $\srt{i}q^{\prime}$. If the argument $\langle \{ \srt{i}p \}, \{ \srt{i}p \rsarrow \srt{i}q \}, \srt{i}q \rangle$ is a refinement in a given argument network, we can respond by adding another argument $\langle \{ \srt{i}r \}, \{ \srt{i}r \dashrightarrow \srt{i}p \}, \neg\srt{i}p \rangle$ to the same argument network. If the added argument turns out justified in the revised argument network, then former will not be justified, and will not be a refinement. In conclusion, the syntactic non-triviality constraint is replaced here with a, so to speak, pragmatic non-triviality constraint: we can voice arguments against a refinement via the appropriate update of the argument network, which can result in the failure of the trivial argument to be a refinement.
+
+%Observe that a refinement requires an argument graph built from a maximal set of arguments (cf., Definitions \ref{def:nl-refinement} and \ref{def:maximal-arguments}). The more information and defeasible rules there are, the costlier it will be to compute a maximal set of arguments. 
+
+
+
+
+\subsection{Reasoning}\label{sect:nlref:reasoning}
+The question we are interested in is which arguments are justified and therefore refinements in a given argument network. The \textsc{Evaluate} procedure in Algorithm \ref{algo:evaluate} is applied to an argument network in order to label each argument with either $\texttt{U}$ or $\texttt{D}$. \textsc{Evaluate} implements the labeling procedure from Definition \ref{def:labeling-procedure}. The traversal of an argument network and the computation of the labels is straightforward: \textsc{Evaluate} launches a modified (to accommodate labeling) breadth-first search (e.g., \cite{Knuth:1997}) from each leaf node, and at each node applies the appropriate labeling rule from Definition \ref{def:labeling-procedure}.
+
+\begin{proposition}
+When applied to a connected and finite argument network $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$, the procedure \textsc{Evaluate}: (i) does not loop indefinetly; (ii) assigns labels according to the rules in Definition \ref{def:labeling-procedure}; and (iii) has the upper bound on the running time in $O(P(|N(\textbf{G})| + |L(\textbf{G})|))$, where $P$ is the number of simple paths in $N(\textbf{G})$ such that each of these paths starts in a leaf node of $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$.
+\end{proposition}
+
+\begin{proof}
+(i) Because $\textbf{G}(V(\textbf{G}), L(\textbf{G}))$ is acyclic, the number of times a node will be traversed by the outer \textbf{for each} loop equals the number of simple paths from each of its leaf nodes. The number of simple paths in a finite acyclic directed graph is finite, so that each node will be traversed a finite number of times. At every traversal of a node, that node is removed from $Q$, so that $Q$ will ultimately empty and the outer \textbf{for each} loop will terminate. \textsc{Evaluate} will never loop indefinetly for an acyclic and finite $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$. (ii) Lines 5--7 correspond to the first rule in Definition \ref{def:labeling-procedure}. Lines 9--17 correspond to the second rule in Definition \ref{def:labeling-procedure}. Each time an inner node is visited, the conditional block in lines 9--17 is called, and the label on the visited node is replaced. Now, observe that it is only the last time an inner node is visited that all of the children will be labeled. That last visit will provide the definite label on the inner node. It is straightforward then that assigns labels according to the rules in Definition \ref{def:labeling-procedure}. (iii) The number of times a node $v$ will enter the queue $Q$ equals the total number of simple paths to $v$ from all leaf nodes in $N(\textbf{G})$. The upper bound on the running time is then in $O(P(|N(\textbf{G})| + |L(\textbf{G})|))$, where $P$ is the number of simple paths in $V(N(\textbf{G}))$ such that each of these paths starts in a leaf node of $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$.
+\end{proof}
+
+\begin{algorithm}[t]
+\caption{Evaluation}\label{algo:evaluate}
+{\footnotesize{
+	\renewcommand\algorithmicrequire{\textbf{Input:}}
+	\renewcommand\algorithmicensure{\textbf{Output:}}
+	\begin{algorithmic}[1]
+		\Require An argument network $\textbf{G}(N(\textbf{G}), L(\textbf{G}))$;
+		\Ensure For each node in $N(\textbf{G})$, either the label $\texttt{U}$ or $\texttt{D}$;
+%		\Statex
+		\Procedure{Evaluate}{$\textbf{G}(N(\textbf{G}), L(\textbf{G}))$}
+			\State Empty the queue $Q$
+			\State Add all leaf nodes in $N(\textbf{G})$ to the queue $Q$
+			\For{\textbf{each} node $v$ in $Q$}
+				\If{$v$ has no offspring}
+					\State Replace the label on $v$ with $\texttt{U}$
+				\Else
+					\For{\textbf{each} $w \in N(\textbf{G})$ s.t. $\exists vw \in L(\textbf{G})$}
+						\If{$w$ is an attacker and is labeled $\texttt{U}$}
+							\State Replace the label on $v$ with $\texttt{D}$
+						\ElsIf{$w$ is an attacker and is labeled $\texttt{D}$}
+							\State Replace the label on $v$ with $\texttt{U}$
+						\ElsIf{$w$ is a supporter and is labeled $\texttt{U}$}
+							\State Replace the label on $v$ with $\texttt{U}$
+						\ElsIf{$w$ is a supporter and is labeled $\texttt{D}$}
+							\State Replace the label on $v$ with $\texttt{D}$
+						\EndIf
+						\State Add $w$ to $Q$
+					\EndFor
+				\EndIf
+				\State Delete $v$ from $Q$
+			\EndFor
+		\EndProcedure
+	\end{algorithmic}
+}}
+\end{algorithm}
+
+%We noted earlier that it is typical to represent goal refinements via directed acyclic graphs, each node of which is a goal, and each line is labeled either \textsc{and} or \textsc{or}, to symbolize the relevant refinement relationship. Representation of \textsc{nl}-refinements via an argument network is not as convenient. A node in an argument network is an argument; if it is justified, then a node is a refinement and hides its internal structure. If we have a refinement $\langle \{ \psi \}, \{ \psi \rsarrow \phi \}, \phi \rangle$, the argument network will not tell us the connectives over which $\psi$ is defined: $\psi$ may be a conjunction of $\srt{i}$-wffs, a disjunction of the same, or any combination of the two. We cannot tell this by looking at the argument network. 
+
+\begin{example}\label{ex:fly}
+Consider the problem of defining a registration form for new users of an online flight booking application. Say that we are given the following statements:
+
+\begin{instexample}
+$\srt{i}q$: \textsf{Whenever an unregistered user selects to purchase a flight, a comprehensive registration form should be displayed.}
+\end{instexample}
+
+From there on, suppose that we have the following statements:
+
+\begin{instexample}
+$\srt{i}p_{1}$: \textsf{A user is not registered.}
+\end{instexample}
+
+\begin{instexample}
+$\srt{i}p_{2}$: \textsf{A user selects to purchase a flight.}
+\end{instexample}
+
+\begin{instexample}
+$\srt{i}p_{3}$: \textsf{A comprehensive registration form is displayed.}
+\end{instexample}
+
+\begin{instexample}
+$\srt{C}r$: \textsf{Satisfying together the conditions in $\srt{i}p_{1}$, $\srt{i}p_{2}$, and $\srt{i}p_{3}$ is prima facie reason for the satisfaction of the condition in $\srt{i}q$.}
+\end{instexample}
+
+The statements above lead us to the argument $\textbf{a}_{1} = \langle \{ \bigwedge_{i=1}^{3}\srt{i}p_{i} \},$ $\{ \bigwedge_{i=1}^{3}\srt{i}p_{i} \rsarrow \srt{i}q \}, \srt{i}q \rangle$. If we are not content with the formulations of $\srt{i}p_{3}$, because ``comprehensive'' is a vague term, we can suggest the argument $\textbf{a}_{2} = \langle \{ \bigwedge_{i=4}^{15}\srt{i}p_{i} \}, \{ \bigwedge_{i=5}^{15}\srt{i}p_{i} \rsarrow \srt{i}p_{3} \}, \srt{i}p_{3} \rangle$, where each $\srt{i}p_{5}, \ldots, \srt{i}p_{15}$ indicates a single piece of information that the form should ask the user to fill in. Suppose that among them, we have the following:
+
+\begin{instexample}
+$\srt{i}p_{9}$: \textsf{The user should provide her birth date.}
+\end{instexample}
+
+We may have another argument, $\textbf{a}_{3} = \langle \{ \srt{i}s \}, \{ \srt{i}s \dashrightarrow \srt{i}p_{9} \}, \srt{i}p_{9} \rangle$, in which $srt{i}s$ is:
+
+\begin{instexample}
+$\srt{i}s$: \textsf{Information that is not absolutely necessary when purchasing a plane ticket should not be asked in the registration form.}
+\end{instexample}
+
+If we know, however, that there a regulation demands that no minor can be a registered user, we can further offer the argument $\textbf{a}_{4} = \langle \{ \srt{i}p_{16} \}, \{ \srt{i}p_{16} \dashrightarrow \srt{i}s \}, \neg\srt{i}s \rangle$, where $\srt{i}p_{16}$ is:
+
+\begin{instexample}
+$\srt{i}p_{16}$: \textsf{The age of the user must be known in order to comply with the regulation that no minors can register.}
+\end{instexample}
+
+At this point, we have four arguments, for which the argument network is shown in Figure \ref{fig:ex:fly:a}. Applying the \textsc{Evaluate} procedure gives the labels shown in Figure \ref{fig:ex:fly:b}. We see that both $\textbf{a}_{1}$ and $\textbf{a}_{2}$ are refinements.
+\end{example}
+
+\begin{figure}[t]
+\centering	\subfigure[][\label{fig:ex:fly:a}]{
+		\xymatrix @R=7mm @C=7mm{
+			\textbf{a}_{2} \ar[r]|-{S} & \textbf{a}_{1} \\
+			\textbf{a}_{3} \ar[u]|-{A} & \textbf{a}_{4} \ar[l]|-{A} \\
+			}
+	}%
+	\qquad
+	\subfigure[][\label{fig:ex:fly:b}]{
+		\xymatrix @R=7mm @C=7mm{
+			\textbf{a}_{2}^{\textbf{\texttt{U}}} \ar[r]|-{S} & \textbf{a}_{1}^{\textbf{\texttt{U}}} \\
+			\textbf{a}_{3}^{\textbf{\texttt{D}}} \ar[u]|-{A} & \textbf{a}_{4}^{\textbf{\texttt{U}}} \ar[l]|-{A} \\
+			}
+	}%
+\caption{Example \ref{ex:fly}.}
+\label{fig:ex:fly}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+%%Reasoning about the satisfaction of formulas in $\mathbb{L}$ is performed by traversing the \textit{refinement net} and computing the satisfaction values for its nodes. A refinement net is obtained by rewriting formulas of $\mathbb{L}$ in graph syntax. 
+%%
+%%\begin{definition}\label{def:graph-syntax}
+%%	\textbf{Graph Syntax.} Let $\Psi$ be a well-formed formula over propositions in $P_{\srt{i}}$, built by applying the rules in Definition \ref{def:symbolic-syntax}. The refinement net of $\Psi$ is a directed labeled graph $G(\Psi)$ defined by the following rules:
+%%	\begin{enumerate}
+%%		\item{If $\Psi \equiv \sigma p$, i.e., $\Psi$ is an $\sigma$-atom, then $G(\Psi)$ consists of a single node $p$, labeled $\sigma$.}
+%%%		\item{If $\Psi = \neg\srt{i}p$, i.e., $\Psi$ is the negation of an $\srt{i}$-atom, then $G(\Psi)$ consists of a single node $\neg p$, labeled $\srt{i}$.}
+%%		\item{If $\Psi \equiv \left(\bigwedge_{i=1}^{n-1}\psi_{i} \right) \rsarrow \psi_{n}$, then:
+%%			\begin{enumerate}
+%%				\item{for each $\psi_{i}$, there is a refinement graph $G(\psi_{i})$, and $G(\psi_{i})$ is a subgraph of $G(\Psi)$;}
+%%				\item{if $\psi_{n} \equiv \srt{i}p$ then $G(\Psi)$ has a node $q$ labeled $\srt{A}$, else if $\psi_{n} \equiv \neg\srt{i}p$, then $G(\Psi)$ has a node $q$ labeled $\srt{C}$; we call $q$ the ``gate'' node;}\label{item:a-or-c}
+%%				\item{there is a directed line from each $G(\psi_{1}), \ldots, G(\psi_{n-1})$ to the gate;}
+%%				\item{there is a directed line from the gate to $G(\psi_{n})$.}
+%%			\end{enumerate}
+%%		}
+%%		\item{If $\Psi \equiv \left(\bigvee_{j=2}^{m}(\bigwedge_{i=1}^{n}\psi_{ij})\right) \rsarrow \psi$, then $G(\Psi)$ contains exactly all distinct nodes and lines in all following graphs: $G\left((\bigwedge_{i=1}^{n}\psi_{i1}) \rsarrow \psi \right)$, $\ldots$, $G\left((\bigwedge_{i=1}^{n}\psi_{im}) \rsarrow \psi \right)$.}
+%%		\item{If $\Psi \equiv \left(\bigvee_{j=2}^{m}(\bigwedge_{i=1}^{n}\psi_{ij})\right) \rsarrow \neg\psi$, then $G(\Psi)$ contains exactly all distinct nodes and lines in all following graphs: $G\left((\bigwedge_{i=1}^{n}\psi_{i1}) \rsarrow \neg\psi \right)$, $\ldots$, $G\left((\bigwedge_{i=1}^{n}\psi_{im}) \rsarrow \neg\psi \right)$.}
+%%	\end{enumerate}
+%%\end{definition}
+%%
+%%\begin{remark}
+%%Several observations are in order regarding the correspondence between the elements of symbolic and graph syntax. Any proposition $p$ is represented as a node. Its label is the symbol for its sort; if $\srt{i}p$, then $p$ is a node, and is labeled $\srt{i}$. Links reflect the relationships between $\srt{i}$-atoms, which are conveyed via propositions symbolized via $\srt{A}$-, $\srt{O}$-, and $\srt{C}$-atoms. Any one $\srt{A}$-, $\srt{O}$-, or $\srt{C}$-atom will therefore ...
+%%
+%%Not only will such propositions be placed as nodes in a refinement net, but they will in addition lead to the introduction of lines. Some $r$ may then say that the conjunction of propositions, e.g., $\bigwedge_{i=1}^{n}\srt{i}p_{i}$, refines another proposition, $\srt{i}q$. In symbolic syntax, we will write this as $(\bigwedge_{i=1}^{n}\srt{i}p_{i}) \rsarrow \srt{i}q$. In graph syntax, the second rule in Definition \ref{def:graph-syntax} indicates that $G((\bigwedge_{i=1}^{n}\srt{i}p_{i}) \rsarrow \srt{i}q)$ will be the graph shown in Figure. 
+%%\end{remark}
+
+
+
+%
+%
+%
+%To avoid the two paradoxes, we start by redefining proof obligations by replacing the monotonic provability relation $\vdash$ with a nonmonotonic consequence relation $\nmdash$. As Morgan \cite{Morgan:2000:MM} shows that a monotonic logic must violate soundness, we are thereby moving away from soundness, and in doing so puts us in agreement with Kyburg \cite{Kyburg:2001:MM}. We avoid the maturity paradox by redefining proof obligations within a propositional nonmonotonic formalism, in which $\nmdash$ obtains a precise definition. Nonmonotonic formalisms find their origins in the work of Pollock \cite{Pollock+:1987:CogSci}, McCarthy \cite{McCarthy:1977:IJCAI}, McDermott and Doyle \cite{McDermott+:1980:AIJ}, and Reiter \cite{Reiter:1980:AIJ}. 
+%
+%Inspiration for the nonmonotonic propositional logic we use in this paper, and in which we define \nlref\, comes from Simari and Loui \cite{Simari+:1990:AIJ}, themselves 
+%
+% is inspired by works 
+%
+%
+%\nlref\ has the following definition.
+%
+%\begin{definition}
+%	\textbf{\nlref.} 
+%\end{definition}
+
+
+
+
+
+\section{Conclusions}\label{sect:conclusions}
+Stakeholders in an \textsc{re} process communicate their requirements in natural language.  It is a longstanding conceptual and methodological challenge to systematically increase the precision of early requirements expressed in \textsc{nl} to the point where they can be straightforwardly rewritten in a predicate formalism. Although Darimont and van Lamsweerde's goal refinement \cite{Darimont+:1996:FSE} was initially defined within a (monotonic) linear temporal Boolean first-order logic via a series of proof obligations, we have argued that many are misusing it by applying it to early requirements expressed in \textsc{nl}. One typically sees propositions designating desired conditions being represented as nodes in an \textsc{and}/\textsc{or} goal graph, in which links indicate the instances of \textsc{and}- or \textsc{or}-goal refinement. By drawing such graphs, one subsumes that proof obligations of goal refinement verify. We have argued (cf., \S\ref{sect:paradoxes}) that this assumption is not acceptable when refining requirements expressed in \textsc{nl}, because doing so suffers from the soundness and maturity paradoxes. 
+
+Our response in this paper is a proposal for a new kind of refinement, called \nlref, specifically designed for the refinement of early requirements expressed in \textsc{nl}. Its salient point is that its obligations are defined to avoid the soundness and maturity paradoxes. Obligations in \nlref\ are in a sense ``weaker'' than those of goal refinement: an instance of the refinement relationship is not proved to hold in a monotonic formal system, and is therefore not certain and indubitable, but tentative, preliminary, and open to revision. Whether a refinement relationship stands between some information must be verified again as new information becomes available. This is reflected in our use of a nonmonotonic formal system when defining the obligations of \nlref, in contrast to defining obligations in a monotonic formalism, as in goal refinement. 
+
+In his discussion of program development by stepwise refinement, Wirth argued that ``each refinement implies a number of design decisions based upon a set of design criteria. [...] Students must be taught to be conscious of the involved decisions and to critically examine and to reject solutions [...]. In particular, they must be taught to revoke earlier decisions, and to back up, if necessary to the top. Relatively short sample problems will often suffice to illustrate this important point; it is not necessary to construct an operating system for this purpose.'' (\cite{Wirth:1971:CACM}; p.227) \nlref\ reflects these principles via its proof obligations  and extends them to the refinement of early requirements expressed in \textsc{nl}. 
+
+
+
+
+
+
+
+
+
+%In software engineering, participants tend to express requirements in natural language. It is a longstanding conceptual and methodological challenge to systematically increase the precision of natural language requirements to the point where they can be straightforwardly rewritten in a mathematical logic, and formal methods applied. We suggested a new kind of refinement, weaker than principal alternatives, but adapted to the refinement of requirements information expressed in natural language. This so-called j-refinement therefore fills in a gap in the software engineer's toolset, in which classical program refinement, Banach's retrenchment, and Darimont and van Lamsweerde's goal refinement already enable the refinement of requirements and specifications written in a mathematical logic. 
+%
+%J-refinement relies on a nonmonotonic logic for argumentation, in which the process of justification is defined. In contrast to other forms of refinement, where more or less strong proof obligations ensure applicability and relevance of a refinement, j-refinement substitutes proof obligations with justification obligations. Given two pieces of information, to claim that one j-refines the other, we require that this be justified. As noted throughout the paper, asking for a justification is much weaker than asking for proof, but is more realistic given the scope of j-refinement.
+%
+%We argue that j-refinement is quite simple to apply. Justification is a straightforward process that replaces proof requirements of other forms of refinement. Not only do proof obligations tend to be beyond the expertise of the participants, but they are unrealistic when requirements in natural language need to be refined. J-refinement is not specific to particular concepts in \textsc{re}: it applies to any concept or set of concepts used in requirements elicitation and analysis. J-refinement therefore applies to various requirements and software engineering frameworks, as long as these cover the early \textsc{re} phase of software development. 
+%
+%Current work focuses on the generalization of lessons learned from the practical use of j-refinement with various \textsc{re} concepts, such as goals, softgoals, and preferences \cite{Jureta+:2008:RE}. Future work will focus on facilitating the use of j-refinement in large scale software development projects.
+
+
+
+
+%------------------------------------------------------------------------- 
+%\bibliographystyle{latex8}
+
+\bibliographystyle{abbrv}
+\bibliography{refinement}
+
+\end{document}
+

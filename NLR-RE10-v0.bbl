@@ -1,0 +1,125 @@
+\begin{thebibliography}{10}
+
+\bibitem{Antonelli:2008:SEP}
+A.~Antonelli.
+\newblock Non-monotonic logic.
+\newblock In E.~N. Zalta, editor, {\em The Stanford Encyclopedia of
+  Philosophy}. Fall 2008.
+
+\bibitem{Banach+:2007:FI}
+R.~Banach, C.~Jeske, M.~Poppleton, and S.~Stepney.
+\newblock Retrenching the purse: The balance enquiry quandary, and generalised
+  and (1, 1) forward refinements.
+\newblock {\em Fundam. Inform.}, 77(1-2):29--69, 2007.
+
+\bibitem{Banach+:1998:B}
+R.~Banach and M.~Poppleton.
+\newblock Retrenchment: An engineering variation on refinement.
+\newblock In {\em B'98: Int. B Conf.}, pages 129--147, 1998.
+
+\bibitem{Dardenne+:1993:SCP}
+A.~Dardenne, A.~van Lamsweerde, and S.~Fickas.
+\newblock Goal-directed requirements acquisition.
+\newblock {\em Sci. Comput. Program.}, 20(1-2):3--50, 1993.
+
+\bibitem{Darimont+:1996:FSE}
+R.~Darimont and A.~van Lamsweerde.
+\newblock Formal refinement patterns for goal-driven requirements elaboration.
+\newblock In {\em SIGSOFT FSE}, pages 179--190, 1996.
+
+\bibitem{deRoever+:1998}
+W.~P. de~Roever and K.~Engelhardt.
+\newblock {\em Data Refinement: Model-oriented Proof Theories and their
+  Comparison}, volume~46 of {\em Cambridge Tracts in Theoretical Computer
+  Science}.
+\newblock Cambridge University Press, 1998.
+
+\bibitem{Dijkstra:1972}
+E.~W. Dijkstra.
+\newblock {Chapter I: Notes on structured programming}.
+\newblock In {\em Structured programming}, pages 1--82. Academic Press Ltd.,
+  1972.
+
+\bibitem{Dung:1995:AIJ}
+P.~M. Dung.
+\newblock On the acceptability of arguments and its fundamental role in
+  nonmonotonic reasoning, logic programming and n-person games.
+\newblock {\em Artif. Intell.}, 77(2):321--358, 1995.
+
+\bibitem{Goguen+:1993:RE}
+J.~A. Goguen and C.~Linde.
+\newblock Techniques for requirements elicitation.
+\newblock In {\em Proc. Int. Symp. Req. Eng.}, pages 152--164, 1993.
+
+\bibitem{Hoare:1972:AInf}
+C.~A.~R. Hoare.
+\newblock Proof of correctness of data representations.
+\newblock {\em Acta Inf.}, 1:271--281, 1972.
+
+\bibitem{Knuth:1997}
+D.~E. Knuth.
+\newblock {\em The Art Of Computer Programming}, volume~1.
+\newblock Boston: Addison-Wesley, 3rd edition, 1997.
+
+\bibitem{Kyburg:2001:MM}
+H.~E. {Kyburg, Jr.}
+\newblock Real logic is nonmonotonic.
+\newblock {\em Minds and Machines}, 11(4):577--595, 2001.
+
+\bibitem{Letier:2001:PHD}
+E.~Letier.
+\newblock {\em Reasoning about Agents in Goal-Oriented Requirements
+  Engineering}.
+\newblock PhD thesis, Universit\'{e} catholique de Louvain, 2001.
+
+\bibitem{McCarthy:1980:AIJ}
+J.~McCarthy.
+\newblock Circumscription - a form of non-monotonic reasoning.
+\newblock {\em Artif. Intell.}, 13(1-2):27--39, 1980.
+
+\bibitem{McGrath:2008:SEP}
+M.~McGrath.
+\newblock Propositions.
+\newblock In E.~N. Zalta, editor, {\em The Stanford Encyclopedia of
+  Philosophy}. Fall 2008.
+
+\bibitem{Pollock:2009:AAI}
+J.~Pollock.
+\newblock A recursive semantics for defeasible reasoning.
+\newblock In I.~Rahwan and G.~Simari, editors, {\em Argumentation in Artificial
+  Intelligence}. Springer, 2009.
+
+\bibitem{Pollock+:1987:CogSci}
+J.~L. Pollock.
+\newblock Defeasible reasoning.
+\newblock {\em Cognitive Science}, 11(4):481--518, 1987.
+
+\bibitem{Pollock:1994:AIJ}
+J.~L. Pollock.
+\newblock Justification and defeat.
+\newblock {\em Artif. Intell.}, 67(2):377--407, 1994.
+
+\bibitem{Simari+:1992:AIJ}
+G.~R. Simari and R.~P. Loui.
+\newblock A mathematical treatment of defeasible reasoning and its
+  implementation.
+\newblock {\em Artif. Intell.}, 53(2-3):125--157, 1992.
+
+\bibitem{Sorensen:2008}
+R.~Sorensen.
+\newblock Vagueness.
+\newblock In E.~N. Zalta, editor, {\em The Stanford Encyclopedia of
+  Philosophy}. Fall 2008.
+
+\bibitem{Swoyer:2008}
+C.~Swoyer.
+\newblock Relativism.
+\newblock In E.~N. Zalta, editor, {\em The Stanford Encyclopedia of
+  Philosophy}. Winter 2008.
+
+\bibitem{Wirth:1971:CACM}
+N.~Wirth.
+\newblock Program development by stepwise refinement.
+\newblock {\em Commun. ACM}, 14(4):221--227, 1971.
+
+\end{thebibliography}
